@@ -1,5 +1,5 @@
 {
-  "board": [
+  "pieces": [
     { "type": 6, "owner": 0, "position": 0 },
     { "type": 2, "owner": 0, "position": 1 },
     { "type": 5, "owner": 0, "position": 2 },

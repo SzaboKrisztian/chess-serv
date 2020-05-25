@@ -1,15 +1,35 @@
 const express = require('express');
-const Board = require('./board_state');
-const std = require('./standard_chess.json');
-const test = require('./test.json');
+const Game = require('./chess-game');
+const test = require('./test2.json');
 const app = express();
 
-brd = new Board(test);
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+const game = new Game(test);
 
 app.use(express.static('public'));
 
-app.get("/std", (req, res) => {
-  return res.send(brd);
+app.get("/game", (req, res) => {
+  return res.send(game);
+});
+
+app.post("/game", (req, res) => {
+  const piecePos = parseInt(req.body.piecePos, 10);
+  const move = parseInt(req.body.move, 10);
+
+  if (move !== undefined) {
+    try {
+      game.makeMove(piecePos, move);
+      return res.send(game);
+    } catch (error) {
+      console.log(error);
+      
+      return res.status(400).send({ response: error });
+    }
+  } else {
+    return res.status(400).send({ response: "Invalid request." });
+  }
 });
 
 const port = 3000;

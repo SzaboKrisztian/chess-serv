@@ -16,13 +16,13 @@ $(() => {
   const board_bg = document.getElementById("board_bg");
   const move_img = document.getElementById("move");
   const ctx = canvas.getContext("2d");
-  let board = null;
+  let game = null;
   let selection = null;
   
   function draw() {
     ctx.drawImage(board_bg, 0, 0);
-    if (board !== null) {
-      board.pieces.forEach((piece) => {
+    if (game.board !== null) {
+      game.board.pieces.forEach((piece) => {
         if ((piece.position & 0x88) === 0) {
           const x = piece.position & 0x07;
           const y = 7 - ((piece.position & 0x70) >> 4);
@@ -57,23 +57,73 @@ $(() => {
     }
   }
 
-  $.ajax({
-    url: "/std",
-    dataType: "json",
-    success: (res) => {
-      board = res;
-      console.log(board);
-      draw();
-    }
-  });
-
   $('#board').click((event) => {
     const rect = canvas.getBoundingClientRect();
     const cellH = rect.height / 8.0;
     const x = Math.floor((event.clientX - rect.left) / cellH);
     const y = 7 - Math.floor((event.clientY - rect.top) / cellH);
-    const index = (y << 4) + x;
-    selection = board.squares[index];
+    const clickedSquareIndex = (y << 4) + x;
+    if (selection !== null) {
+      const validMove = selection.moves.find((move) => ((move & 0xff) === clickedSquareIndex));
+      if (validMove) {
+        $.ajax({
+          type: "POST",
+          url: "/game",
+          dataType: "json",
+          data: {
+            piecePos: selection.position,
+            move: validMove
+          },
+          success: (res) => {
+            updateGame(res);
+          },
+          error: (xhr, status, error) => {
+            console.log(error, status, xhr);
+          }
+        });
+      } else if (game.board.squares[clickedSquareIndex] !== null) {
+        if (game.board.squares[clickedSquareIndex] !== selection) {
+          selection = game.board.squares[clickedSquareIndex];
+        } else {
+          selection = null;
+        }
+      } else {
+        selection = null;
+      }
+    } else {
+      selection = game.board.squares[clickedSquareIndex];
+    }
     draw();
+  });
+
+  function updateGame(updated) {
+    game = updated;
+    selection = null;
+    console.log(game);
+    let message;
+    switch(game.state) {
+      case -1:
+        message = game.board.currentPlayer === 0 ? "White's turn." : "Black's turn.";
+        break;
+      case 0:
+        message = "Checkmate. White wins.";
+        break;
+      case 1:
+        message = "Checkmate. Black wins.";
+        break;
+      case 2:
+        message = "Draw. Game over.";
+        break;
+    }
+    $('#message').text(message);
+    draw();
+  }
+
+  $.ajax({
+    url: "/game",
+    dataType: "json",
+    success: (res) => {
+      updateGame(res);
+    }
   });
 });

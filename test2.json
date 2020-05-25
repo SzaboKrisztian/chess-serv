@@ -1,0 +1,15 @@
+{
+  "pieces": [
+    { "type": 6, "owner": 0, "position": 0},
+    { "type": 3, "owner": 0, "position": 4},
+    { "type": 6, "owner": 0, "position": 7},
+    { "type": 6, "owner": 1, "position": 112},
+    { "type": 3, "owner": 1, "position": 116},
+    { "type": 6, "owner": 1, "position": 119}
+  ],
+  "currentPlayer": 0,
+  "fiftyMoves": 0,
+  "kingsideCastle": [true, true],
+  "queensideCastle": [true, true],
+  "enPassant": null
+}
