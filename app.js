@@ -1,12 +1,12 @@
 const express = require('express');
 const Game = require('./chess-game');
-const test = require('./test2.json');
+const test = require('./test3.json');
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-const game = new Game(test);
+const game = new Game();
 
 app.use(express.static('public'));
 

@@ -1,4 +1,3 @@
-const standardChess = require('./standard-chess.json');
 const WHITE = 0, BLACK = 1;
 const PAWN = 1, KNIGHT = 2, KING = 3, BISHOP = 5, ROOK = 6, QUEEN = 7;
 const N = 16, NE = 17, E = 1, SE = -15, S = -16, SW = -17, W = -1, NW = 15;
@@ -55,8 +54,8 @@ module.exports = class Board {
         result.squares[rookTarget] = rook;
         rook.position = rookTarget;
         result.squares[rookPos] = null;
-        this.kingsideCastle[this.currentPlayer] = false;
-        this.queensideCastle[this.currentPlayer] = false;
+        result.kingsideCastle[result.currentPlayer] = false;
+        result.queensideCastle[result.currentPlayer] = false;
       } else {
         // Normal move (possibly pawn promotion)
         // Check if we're capturing something
@@ -64,11 +63,15 @@ module.exports = class Board {
         if (target !== null) {
           const index = result.pieces.indexOf(target);
           result.pieces.splice(index, 1);
-        }
-        // Check if we're promoting a pawn
-        const promotion = (move & promotionBits) >> 10;
-        if (promotion > 0) {
-          piece.type = promotion;
+        } else if (piece.type === PAWN) {
+          // Check if we're promoting a pawn
+          const promotion = (move & promotionBits) >> 10;
+          if (promotion > 0) {
+            piece.type = promotion;
+          } else if (Math.abs(piecePos - destination) === 32) {
+            // Check if we need to mark en passant as possible on the next move
+            result.enPassant = destination;
+          }
         }
       }
 
@@ -108,6 +111,9 @@ module.exports = class Board {
   }
 
   _generateMoves() {
+    // Clear the attack board
+    this._clearAttacks();
+
     // Generate all pseudo-legal moves
     this.pieces.forEach((piece) => {
       piece.moves = [];
@@ -141,7 +147,7 @@ module.exports = class Board {
     // Remove all the king's moves that would put him in check
     const legalKingMoves = [];
     king.moves.forEach((move) => {
-      if (this._findAttackers(move, opponent).length === 0) {
+      if (!this.squares[move | 8]) {
         legalKingMoves.push(move);
       }
     });
@@ -308,6 +314,11 @@ module.exports = class Board {
           if (current === null || current.owner !== piece.owner) {
             piece.moves.push(target);
           }
+          if (piece.owner !== this.currentPlayer) {
+            // This is a side-effect of the function!
+            // This was the best place to generate the off-board to keep track of attacked squares and at the same time avoid iterating one more time over all enemy pieces.
+            this.squares[target | 8] = true;
+          }
           if (current !== null) {
             break;
           }
@@ -316,6 +327,13 @@ module.exports = class Board {
         }
         dist++;
       }
+    }
+  }
+
+  _clearAttacks() {
+    for (let i = 8; i < 128; i++) {
+      if ((i & 8) === 0) i += 8;
+      this.squares[i] = false;
     }
   }
 
@@ -424,32 +442,4 @@ function isSlidingPiece(piece) {
 
 function enemyPiecePresent(board, position, player) {
   return (isWithinBounds(position) && board[position] !== null && board[position].owner !== player);
-}
-
-function coordToIndex(x, y) {
-  if (x >= 0 && y >= 0 && x <= 7 && y <= 7) {
-    return (y << 4) | x;
-  } else {
-    throw 'Coordinate out of bounds [0..7]';
-  }
-}
-
-function indexToCoord(index) {
-  if (index >= 0 && index < 128) {
-    return [(index & 0x07), (index & 0x70) >> 4];
-  } else {
-    throw 'Index out of bounds [0..127]';
-  }
-}
-
-function algToIndex(algebraic) {
-  let x = algebraic.toLowerCase().codePointAt(0) - 97;
-  let y = algebraic.codePointAt(1) - 49;
-  return getIndex(x, y);
-}
-
-function indexToAlg(index) {
-  const x = index & 0x07;
-  const y = (index & 0x70) >> 4;
-  return String.fromCharCode([x + 97, y + 49]);
 }

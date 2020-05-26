@@ -7,9 +7,9 @@
     { "type": 3, "owner": 1, "position": 116},
     { "type": 6, "owner": 1, "position": 119}
   ],
-  "currentPlayer": 0,
+  "currentPlayer": 1,
   "fiftyMoves": 0,
-  "kingsideCastle": [true, true],
-  "queensideCastle": [true, true],
+  "kingsideCastle": [true, false],
+  "queensideCastle": [true, false],
   "enPassant": null
 }
