@@ -1,0 +1,7 @@
+exports.settings = {
+  service: 'gmail',
+  auth : {
+    user: "mailerAccount",
+    pass: "password"
+  }
+}

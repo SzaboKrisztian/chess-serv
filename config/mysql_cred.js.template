@@ -1,0 +1,5 @@
+exports.credentials = {
+  database: "database",
+  user: "user",
+  password: "pass"
+};

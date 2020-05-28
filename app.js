@@ -1,39 +1,76 @@
+// Express setup
+
 const express = require('express');
-const Game = require('./chess-game');
-const test = require('./test3.json');
 const app = express();
+const helmet = require('helmet');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static('public/static'));
+app.use(helmet());
 
-const game = new Game();
+// Sessions setup
 
-app.use(express.static('public'));
+const secret = require('./config/session_secret').secret;
+const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
+const sessionStoreOptions = {
+  host: 'localhost',
+  port: '3306',
+  ...require('./config/mysql_cred').credentials
+};
+const sessionStore = new MySQLStore(sessionStoreOptions);
+const sessionMiddleware = session({
+  secret: secret,
+  store: sessionStore,
+  resave: false,
+  saveUninitialized: true
+});
+app.use(sessionMiddleware);
 
-app.get("/game", (req, res) => {
-  return res.send(game);
+// Rate limiter
+
+const rateLimit = require('express-rate-limit');
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8
+});
+app.use('/auth/login', limiter);
+app.use('/auth/signup', limiter);
+
+// Knex + Objection setup
+
+const Model = require('objection').Model;
+const Knex = require('knex');
+const knexFile = require('./knexfile');
+const knex = Knex(knexFile.development);
+Model.knex(knex);
+
+// Routes
+
+const authRoutes = require('./routes/auth');
+const gameRoutes = require('./routes/game');
+
+app.use(authRoutes);
+app.use(gameRoutes);
+
+// Sockets
+
+const server = require('http').createServer(app);
+const io = require('socket.io').listen(server);
+
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
-app.post("/game", (req, res) => {
-  const piecePos = parseInt(req.body.piecePos, 10);
-  const move = parseInt(req.body.move, 10);
-
-  if (move !== undefined) {
-    try {
-      game.makeMove(piecePos, move);
-      return res.send(game);
-    } catch (error) {
-      console.log(error);
-      
-      return res.status(400).send({ response: error });
-    }
-  } else {
-    return res.status(400).send({ response: "Invalid request." });
-  }
+io.on('connection', (socket) => {
+  require('./routes/socket')(socket);
+  return io;
 });
 
 const port = 3000;
 
+server.listen(3310); // The listener for socket connections
 app.listen(port, (error) => {
   if (error) {
     console.log(error);

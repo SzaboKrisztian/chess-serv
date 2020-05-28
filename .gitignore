@@ -1,0 +1,4 @@
+config/mysql_cred.js
+config/session_secret.js
+config/smtp_settings.js
+node_modules

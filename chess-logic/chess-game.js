@@ -1,5 +1,5 @@
 const Board = require('./board-state');
-const standardChess = require('./standard-chess.json');
+const standardChess = require('../chess-data/standard-chess.json');
 const WHITE = 0, BLACK = 1;
 const PLAYING = -1, WHITE_WINS = 0, BLACK_WINS = 1, DRAW = 2;
 

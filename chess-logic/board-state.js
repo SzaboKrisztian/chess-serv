@@ -36,10 +36,9 @@ module.exports = class Board {
     // The highest three bits represent the code of the piece to which a pawn is to be promoted, in the case of the moving a pawn to the last rank
     const result = new Board(this._getState());
     const piece = result.squares[piecePos];
-    const moves = this.squares[piecePos].moves;  
     const destination = move & 0x77;
     
-    if (piece != null && moves.includes(move)) {
+    if (piece != null && this.squares[piecePos].moves.includes(move)) {
       if ((move & enPassantBit) > 0) {
         // Check if we're doing an en passant capture
         const captured = result.squares[result.enPassant];
@@ -198,14 +197,14 @@ module.exports = class Board {
       // Check to see if king may castle, and add the move/s if so
       this.isKingInCheck = false;
       if (this._mayCastleKingSide(king.position)) {
-        let att = this._findAttackers(king.position + E, opponent).concat(this._findAttackers(king.position + (2 * E)));
-        if (att.length === 0) {
+        const anySquareAttacked = this.squares[(king.position + E) | 8] || this.squares[(kingPosition + (2 * E)) | 8];
+        if (!anySquareAttacked) {
           king.moves.push(king.position + (2 * E) + castlingBit);
         }
       }
       if (this._mayCastleQueenSide(king.position)) {
-        let att = this._findAttackers(king.position + W, opponent).concat(this._findAttackers(king.position + (2 * W)));
-        if (att.length === 0) {
+        const anySquareAttacked = this.squares[(king.position + W) | 8] || this.squares[(kingPosition + (2 * W)) | 8];
+        if (!anySquareAttacked) {
           king.moves.push(king.position + (2 * W) + castlingBit);
         }
       }
@@ -227,7 +226,7 @@ module.exports = class Board {
     opponentSliders.forEach((piece) => {
       const vector = this._findAttackVector(piece, king.position);
       if (vector.length > 0) {
-        // The piece and the king are in line, with a least one square separating them
+        // The piece and the king are in line, with at least one square separating them
         let potentiallyPinned = [];
         vector.forEach((index) => {
           if (this.squares[index] !== null && this.squares[index].owner === this.currentPlayer) {
@@ -387,6 +386,7 @@ module.exports = class Board {
       const piece = this.squares[square];
       return piece !== null && piece.owner === this.currentPlayer && piece.type === PAWN;
     }
+    return false;
   }
 
   _mayCastleKingSide(kingPosition) {
