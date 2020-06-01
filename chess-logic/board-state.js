@@ -26,6 +26,7 @@ module.exports = class Board {
     this.kingsideCastle = state.kingsideCastle;
     this.queensideCastle = state.queensideCastle;
     this.enPassant = state.enPassant;
+    this.lastMove = state.lastMove;
   }
 
   makeMove(piecePos, move) {
@@ -37,6 +38,7 @@ module.exports = class Board {
     const result = new Board(this._getState());
     const piece = result.squares[piecePos];
     const destination = move & 0x77;
+    let clearEnPassant = true;
     
     if (piece != null && this.squares[piecePos].moves.includes(move)) {
       if ((move & enPassantBit) > 0) {
@@ -70,6 +72,7 @@ module.exports = class Board {
           } else if (Math.abs(piecePos - destination) === 32) {
             // Check if we need to mark en passant as possible on the next move
             result.enPassant = destination;
+            clearEnPassant = false;
           }
         }
       }
@@ -93,7 +96,11 @@ module.exports = class Board {
       result.squares[destination] = piece;
       piece.position = destination;
       result.squares[piecePos] = null;
+      result.lastMove = [piecePos, destination];
       result.currentPlayer = result.currentPlayer === WHITE ? BLACK : WHITE;
+      if (clearEnPassant) {
+        result.enPassant = null;
+      }
       return result;
     } else {
       throw 'Illegal move';
@@ -103,6 +110,29 @@ module.exports = class Board {
   hasLegalMoves() {
     for (let i = 0; i < this.pieces.length; i++) {
       if (this.pieces[i].owner === this.currentPlayer && this.pieces[i].moves.length > 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  enoughMaterial() {
+    let whiteMinorPieces = 0;
+    let blackMinorPieces = 0;
+    for (let i = 0; i < this.pieces.length; i++) {
+      const piece = this.pieces[i];
+      if (piece.type === KING) continue;
+      if (piece.type === QUEEN || piece.type === ROOK || piece.type === PAWN) {
+        return true;
+      }
+      if (piece.type == BISHOP || piece.type === KNIGHT) {
+        if (piece.owner === WHITE) {
+          whiteMinorPieces++;
+        } else {
+          blackMinorPieces++;
+        }
+      }
+      if (whiteMinorPieces > 1 || blackMinorPieces > 1) {
         return true;
       }
     }
@@ -197,13 +227,13 @@ module.exports = class Board {
       // Check to see if king may castle, and add the move/s if so
       this.isKingInCheck = false;
       if (this._mayCastleKingSide(king.position)) {
-        const anySquareAttacked = this.squares[(king.position + E) | 8] || this.squares[(kingPosition + (2 * E)) | 8];
+        const anySquareAttacked = this.squares[(king.position + E) | 8] || this.squares[(king.position + (2 * E)) | 8];
         if (!anySquareAttacked) {
           king.moves.push(king.position + (2 * E) + castlingBit);
         }
       }
       if (this._mayCastleQueenSide(king.position)) {
-        const anySquareAttacked = this.squares[(king.position + W) | 8] || this.squares[(kingPosition + (2 * W)) | 8];
+        const anySquareAttacked = this.squares[(king.position + W) | 8] || this.squares[(king.position + (2 * W)) | 8];
         if (!anySquareAttacked) {
           king.moves.push(king.position + (2 * W) + castlingBit);
         }
@@ -211,13 +241,14 @@ module.exports = class Board {
     }
 
     // Check and add if there are en passant moves
+    const direction = this.currentPlayer == WHITE ? N : S;
     if (this.enPassant !== null) {
       // Check to the left and right of the pawn that just moved two ranks
       if (this._canTakeEnPassant(this.enPassant + W)) {
-        this.squares[this.enPassant + W].moves.push(this.enPassant + N + enPassantBit);
+        this.squares[this.enPassant + W].moves.push(this.enPassant + direction + enPassantBit);
       } 
       if (this._canTakeEnPassant(this.enPassant + E)) {
-        this.squares[this.enPassant + E].moves.push(this.enPassant + N + enPassantBit)
+        this.squares[this.enPassant + E].moves.push(this.enPassant + direction + enPassantBit)
       }
     }
 
@@ -245,17 +276,20 @@ module.exports = class Board {
           });
           pinnedPiece.moves = legalMoves;
         } else if (this.enPassant !== null && potentiallyPinned.length === 2 && potentiallyPinned.every((piece) => (piece.type === PAWN))) {
-          // This is an edge case where there's exactly two pawns between the attacker and the king, and one of them just moved two ranks. There's a particular layout of these pieces that blocks the otherwise legal en passant capture.
+          // An edge case where a pawn that could otherwise do an en passant capture is prohibited of doing so, because that would leave its king in check
           let step = piece.position;
           const direction = getDirection(piece.position, king.position);
           do {
             step += direction;
           } while (this.squares[step] === null);
           const firstPawn = this.squares[step];
-          if (firstPawn.owner === this.currentPlayer) {
-            const secondPawn = this.squares[step + direction];
-            if (secondPawn.owner === opponent && secondPawn.position === this.enPassant) {
-              firstPawn.moves.splice(firstPawn.moves.indexOf(this.enPassant + N), 1);
+          const secondPawn = this.squares[step + direction];
+          // The two pawns have to be next to each other, one black and one white
+          if (secondPawn !== null && firstPawn.owner !== secondPawn.owner) {
+            const myPawn = firstPawn.owner === this.currentPlayer ? firstPawn : secondPawn;
+            const enemyPawn = myPawn == firstPawn ? secondPawn : firstPawn;
+            if (enemyPawn.position === this.enPassant && myPawn.moves.includes(this.enPassant + N)) {
+              myPawn.moves.splice(firstPawn.moves.indexOf(this.enPassant + N), 1);
             }
           }
         }
@@ -406,8 +440,8 @@ module.exports = class Board {
       "enPassant": this.enPassant
     }
     const pieces = this.pieces.map((piece) => {
-      const {type, owner, position} = piece;
-      return { "type": type, "owner": owner, "position": position }
+      const {type, owner, position, moves} = piece;
+      return { "type": type, "owner": owner, "position": position, "moves": [...moves] };
     });
     result.pieces = pieces;
     return result;
@@ -423,7 +457,7 @@ function isWithinBounds(index) {
 
 function getDirection(source, destination) {
   const diff = destination - source;
-  if (Math.abs(diff) < 7) {
+  if (Math.abs(diff) <= 7) {
     return diff < 0 ? -1 : 1;
   }
   const result = queenDirs.find((dir) => {

@@ -20,9 +20,10 @@ $(() => {
   let selection = null;
   
   function draw() {
+    const board = game.getBoard();
     ctx.drawImage(board_bg, 0, 0);
-    if (game.board !== null) {
-      game.board.pieces.forEach((piece) => {
+    if (board !== null) {
+      board.pieces.forEach((piece) => {
         if ((piece.position & 0x88) === 0) {
           const x = piece.position & 0x07;
           const y = 7 - ((piece.position & 0x70) >> 4);
@@ -58,6 +59,7 @@ $(() => {
   }
 
   $('#board').click((event) => {
+    const board = game.getBoard();
     const rect = canvas.getBoundingClientRect();
     const cellH = rect.height / 8.0;
     const x = Math.floor((event.clientX - rect.left) / cellH);
@@ -81,9 +83,9 @@ $(() => {
             console.log(error, status, xhr);
           }
         });
-      } else if (game.board.squares[clickedSquareIndex] !== null) {
-        if (game.board.squares[clickedSquareIndex] !== selection) {
-          selection = game.board.squares[clickedSquareIndex];
+      } else if (board.squares[clickedSquareIndex] !== null) {
+        if (board.squares[clickedSquareIndex] !== selection) {
+          selection = board.squares[clickedSquareIndex];
         } else {
           selection = null;
         }
@@ -91,7 +93,7 @@ $(() => {
         selection = null;
       }
     } else {
-      selection = game.board.squares[clickedSquareIndex];
+      selection = board.squares[clickedSquareIndex];
     }
     draw();
   });
@@ -103,7 +105,7 @@ $(() => {
     let message;
     switch(game.state) {
       case -1:
-        message = game.board.currentPlayer === 0 ? "White's turn." : "Black's turn.";
+        message = game.getBoard().currentPlayer === 0 ? "White's turn." : "Black's turn.";
         break;
       case 0:
         message = "Checkmate. White wins.";

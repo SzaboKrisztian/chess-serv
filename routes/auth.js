@@ -17,6 +17,10 @@ function isPasswordValid(password, passwordRepeat) {
   return (password !== undefined) && (password === passwordRepeat) && (password.length >= 8);
 }
 
+function isUsernameValid(username) {
+  return /^[0-9a-zA-Z]{4,}$/.test(username);
+}
+
 const router = require('express').Router();
 router.post("/auth/login", async (req, res) => {
   const body = req.body;
@@ -61,8 +65,9 @@ router.post("/auth/signup", async (req, res) => {
   const { username, email, password, passwordRepeat } = req.body;
   const passwordIsValid = isPasswordValid(password, passwordRepeat);
   const emailIsValid = email && emailPattern.test(email);
+  const usernameIsValid = isUsernameValid(username);
 
-  if (username && emailIsValid && passwordIsValid) {
+  if (usernameIsValid && emailIsValid && passwordIsValid) {
     try {
       const foundUsernames = await User.query().where({ username: username });
       const foundEmails = await User.query().where({ email: email });
@@ -99,9 +104,11 @@ router.post("/auth/signup", async (req, res) => {
     }
   } else if (password.length < 8) {
     return res.status(400).send({ response: "Error: Password does not fulfill the requirements." });
+  } else if (!usernameIsValid) {
+    return res.status(400).send({ response: "Error: Username must consist of 4 or more exclusively alphanumerical characters." });
   } else if (!username || !password || !passwordRepeat) {
     return res.status(400).send({ response: "Error: Missing username, password, or passwordRepeat." });
-  } else if (password !== repeatPassword) {
+  } else if (password !== passwordRepeat) {
     return res.status(400).send({ response: "Error: password and passwordRepeat do not match." });
   } else {
     return res.status(400).send({ response: "Error: does this ever happen?" });
@@ -209,6 +216,14 @@ router.post("/auth/do_reset", async (req, res) => {
     }
   } catch (error) {
     return res.status(500).send({ response: "Error: Something went wrong with the database. " + error });
+  }
+});
+
+router.get("/auth/test", (req, res) => {
+  if (req.session.user) {
+    res.send({ response: "Authenticated" });
+  } else {
+    res.status(400).send({ response: "Not authenticated" });
   }
 });
 

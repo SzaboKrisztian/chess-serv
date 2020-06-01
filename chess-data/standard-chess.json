@@ -37,5 +37,6 @@
   "fiftyMoves": 0,
   "kingsideCastle": [true, true],
   "queensideCastle": [true, true],
-  "enPassant": null
+  "enPassant": null,
+  "lastMove": null
 }

@@ -35,24 +35,34 @@ exports.up = function(knex) {
       table.string('black_user').notNullable();
       table.string('black_email').notNullable();
       table.json('data').notNullable();
-      table.integer('state').notNullable();
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
       table.dateTime('updated_at').defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
     })
 
     .createTable('invitations', (table) => {
       table.increments('id');
-      table.integer('inviter').unsigned().notNullable();
-      table.foreign('inviter').references('id').inTable('users');
+      table.integer('inviter_id').unsigned().notNullable();
+      table.foreign('inviter_id').references('id').inTable('users');
       table.string('invitee_email').notNullable();
       table.boolean('accepted').notNullable().defaultTo(false);
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
       table.dateTime('updated_at').defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
-    });    
+    })
+
+    .createTable('messages', (table) => {
+      table.increments('id');
+      table.integer('author_id').unsigned().notNullable();
+      table.foreign('author_id').references('id').inTable('users');
+      table.integer('game_id').unsigned().notNullable();
+      table.foreign('game_id').references('id').inTable('games');
+      table.text('message').notNullable();
+      table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
+    });
 };
 
 exports.down = function(knex) {
   return knex.schema
+    .dropTableIfExists('messages')
     .dropTableIfExists('invitations')
     .dropTableIfExists('games')
     .dropTableIfExists('tokens')

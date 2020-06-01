@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public/static'));
 app.use(helmet());
+app.set('view engine', 'ejs'); // Set ejs as the templating engine
 
 // Sessions setup
 
@@ -50,9 +51,11 @@ Model.knex(knex);
 
 const authRoutes = require('./routes/auth');
 const gameRoutes = require('./routes/game');
+const frontEndRoutes = require('./routes/front-end');
 
 app.use(authRoutes);
 app.use(gameRoutes);
+app.use(frontEndRoutes);
 
 // Sockets
 
@@ -63,10 +66,7 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
-io.on('connection', (socket) => {
-  require('./routes/socket')(socket);
-  return io;
-});
+const sockets = require('./sockets/sockets')(io);
 
 const port = 3000;
 

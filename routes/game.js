@@ -1,12 +1,18 @@
 const router = require('express').Router();
+const { PerformanceObserver, performance } = require('perf_hooks');
+const path = require('path');
 
 const Game = require('../chess-logic/chess-game');
 const test = require('../chess-data/test3.json');
 
 const game = new Game();
 
-router.get("/", (req, res) => {
-  return res.sendFile(__dirname + '/../public/draw.html');
+router.get("/cheat", (req, res) => {
+  return res.sendFile(path.resolve('public/chat2.html'));
+});
+
+router.get("/draw", (req, res) => {
+  return res.sendFile(path.resolve('public/draw.html'));
 });
 
 router.get("/game", (req, res) => {
@@ -23,7 +29,11 @@ router.post("/game", (req, res) => {
 
   if (move !== undefined) {
     try {
+      const start = performance.now();
       game.makeMove(piecePos, move);
+      const end = performance.now();
+      console.log(end - start);
+      
       return res.send(game);
     } catch (error) {
       console.log(error);
