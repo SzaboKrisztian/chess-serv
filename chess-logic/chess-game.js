@@ -1,7 +1,8 @@
 const Board = require('./board-state');
 const standardChess = require('../chess-data/standard-chess.json');
 const WHITE = 0, BLACK = 1;
-const PLAYING = -1,
+const WHITE_MOVES = -2,
+  BLACK_MOVES = -1,
   WHITE_WINS_CHECKMATE = 0,
   BLACK_WINS_CHECKMATE = 1,
   WHITE_WINS_RESIGNATION = 2,
@@ -50,7 +51,7 @@ module.exports = class Game {
       } else if (!board.enoughMaterial()) {
         return DRAW_MATERIAL;
       } else {
-        return PLAYING;
+        return board.currentPlayer === WHITE ? WHITE_MOVES : BLACK_MOVES;
       }
     } else if (board.isKingInCheck) {
       return board.currentPlayer === WHITE ? BLACK_WINS_CHECKMATE : WHITE_WINS_CHECKMATE;

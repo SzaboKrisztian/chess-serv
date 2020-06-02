@@ -35,6 +35,8 @@ exports.up = function(knex) {
       table.string('black_user').notNullable();
       table.string('black_email').notNullable();
       table.json('data').notNullable();
+      table.integer('status').notNullable();
+      table.integer('num_moves').notNullable();
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
       table.dateTime('updated_at').defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
     })

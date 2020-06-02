@@ -132,4 +132,8 @@ $(() => {
         break;
     }
   });
+
+  socket.on('mygames', (data) => {
+    console.log(data);
+  });
 });
