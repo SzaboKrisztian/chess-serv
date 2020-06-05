@@ -17,6 +17,7 @@ module.exports = class Game {
     if (data) {
       this.history = data.history.map((b) => new Board(b));
       this.state = data.state;
+      this.drawOffer = data.drawOffer;
     } else {
       this._startNewGame();
     }
@@ -34,6 +35,7 @@ module.exports = class Game {
   _startNewGame() {
     this.history = []
     this._changeState(standardChess);
+    this.drawOffer = -1;
   }
 
   _changeState(state) {
@@ -41,6 +43,7 @@ module.exports = class Game {
     newBoard._generateMoves();
     this.history.push(newBoard);
     this.state = this._getState();
+    this.drawOffer = -1;
   }
 
   _getState() {

@@ -31,7 +31,7 @@ module.exports = class Board {
 
   makeMove(piecePos, move) {
     // Move is encoded as follows: pppce0yyy0xxx
-    // The lowest two nibbles represent the position, as usual, as per the 0x88 method
+    // The lowest two nibbles represent the position, as usual, as per the 0x88 board representation
     // The next bit represents whether the move is an en passant capture
     // The next bit represents whether the move is a castling move
     // The highest three bits represent the code of the piece to which a pawn is to be promoted, in the case of the moving a pawn to the last rank
@@ -39,6 +39,7 @@ module.exports = class Board {
     const piece = result.squares[piecePos];
     const destination = move & 0x77;
     let clearEnPassant = true;
+    let resetFiftyMoves = false;
     
     if (piece != null && this.squares[piecePos].moves.includes(move)) {
       if ((move & enPassantBit) > 0) {
@@ -64,7 +65,10 @@ module.exports = class Board {
         if (target !== null) {
           const index = result.pieces.indexOf(target);
           result.pieces.splice(index, 1);
-        } else if (piece.type === PAWN) {
+          resetFiftyMoves = true;
+        }
+        if (piece.type === PAWN) {
+          resetFiftyMoves = true;
           // Check if we're promoting a pawn
           const promotion = (move & promotionBits) >> 10;
           if (promotion > 0) {
@@ -98,6 +102,11 @@ module.exports = class Board {
       result.squares[piecePos] = null;
       result.lastMove = [piecePos, destination];
       result.currentPlayer = result.currentPlayer === WHITE ? BLACK : WHITE;
+      if (resetFiftyMoves) {
+        result.fiftyMoves = 0;
+      } else {
+        result.fiftyMoves++;
+      }
       if (clearEnPassant) {
         result.enPassant = null;
       }
@@ -258,14 +267,18 @@ module.exports = class Board {
       const vector = this._findAttackVector(piece, king.position);
       if (vector.length > 0) {
         // The piece and the king are in line, with at least one square separating them
-        let potentiallyPinned = [];
+        const potentiallyPinned = [];
+        const allPiecesInVector = [];
         vector.forEach((index) => {
-          if (this.squares[index] !== null && this.squares[index].owner === this.currentPlayer) {
-            potentiallyPinned.push(this.squares[index]);
+          if (this.squares[index] !== null) {
+            allPiecesInVector.push(this.squares[index]);
+            if (this.squares[index].owner === this.currentPlayer) {
+              potentiallyPinned.push(this.squares[index]);
+            }
           }
         });
 
-        if (potentiallyPinned.length === 1 && potentiallyPinned[0].owner === this.currentPlayer) {
+        if (potentiallyPinned.length === 1 && allPiecesInVector.length === 1 && potentiallyPinned[0].owner === this.currentPlayer) {
           // The case of there being a single piece between the attacker and the king means that the piece is pinned.
           const pinnedPiece = potentiallyPinned[0];
           const legalMoves = [];
@@ -277,19 +290,23 @@ module.exports = class Board {
           pinnedPiece.moves = legalMoves;
         } else if (this.enPassant !== null && potentiallyPinned.length === 2 && potentiallyPinned.every((piece) => (piece.type === PAWN))) {
           // An edge case where a pawn that could otherwise do an en passant capture is prohibited of doing so, because that would leave its king in check
-          let step = piece.position;
           const direction = getDirection(piece.position, king.position);
-          do {
-            step += direction;
-          } while (this.squares[step] === null);
-          const firstPawn = this.squares[step];
-          const secondPawn = this.squares[step + direction];
-          // The two pawns have to be next to each other, one black and one white
-          if (secondPawn !== null && firstPawn.owner !== secondPawn.owner) {
-            const myPawn = firstPawn.owner === this.currentPlayer ? firstPawn : secondPawn;
-            const enemyPawn = myPawn == firstPawn ? secondPawn : firstPawn;
-            if (enemyPawn.position === this.enPassant && myPawn.moves.includes(this.enPassant + N)) {
-              myPawn.moves.splice(firstPawn.moves.indexOf(this.enPassant + N), 1);
+
+          // The rule only applies horizontally
+          if (direction === E || direction === W) {
+            let step = piece.position;
+            do {
+              step += direction;
+            } while (this.squares[step] === null);
+            const firstPawn = this.squares[step];
+            const secondPawn = this.squares[step + direction];
+            // The two pawns have to be next to each other, one black and one white
+            if (secondPawn !== null && firstPawn.owner !== secondPawn.owner) {
+              const myPawn = firstPawn.owner === this.currentPlayer ? firstPawn : secondPawn;
+              const enemyPawn = myPawn == firstPawn ? secondPawn : firstPawn;
+              if (enemyPawn.position === this.enPassant && myPawn.moves.includes(this.enPassant + N)) {
+                myPawn.moves.splice(firstPawn.moves.indexOf(this.enPassant + N), 1);
+              }
             }
           }
         }
@@ -310,7 +327,7 @@ module.exports = class Board {
     let firstRankClear = false;
     if (this.squares[destination] === null) {
       firstRankClear = true;
-      if (destination !== lastRank) {
+      if (((destination & 0x70) >> 4) !== lastRank) {
         pawn.moves.push(destination);
       } else {
         // Promotion time
@@ -325,13 +342,20 @@ module.exports = class Board {
     }
 
     // Capture moves
-    destination = pawn.position + direction - 1;
-    if (enemyPiecePresent(this.squares, destination, pawn.owner)) {
-      pawn.moves.push(destination);
+    this._generatePawnCaptureMoves(pawn, pawn.position + direction - 1, lastRank);
+    this._generatePawnCaptureMoves(pawn, pawn.position + direction + 1, lastRank);
+  }
+
+  _generatePawnCaptureMoves(pawn, destination, lastRank) {
+    if (pawn.owner !== this.currentPlayer) {
+      this.squares[destination | 8] = true;
     }
-    destination = pawn.position + direction + 1;
-    if (enemyPiecePresent(this.squares, destination, pawn.owner)) {
-      pawn.moves.push(destination);
+    if (isWithinBounds(destination) && enemyPiecePresent(this.squares, destination, pawn.owner)) {
+      if (((destination & 0x70) >> 4) !== lastRank) {
+        pawn.moves.push(destination);
+      } else {
+        promotionOptions.forEach((promotion) => pawn.moves.push(destination + promotion));
+      }
     }
   }
 

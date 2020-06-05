@@ -1,12 +1,13 @@
 const Game = require('../models/Game');
 const User = require('../models/User');
+const Message = require('../models/Message');
 const ChessGame = require('../chess-logic/chess-game');
+const WHITE = 0, BLACK = -1;
 const userSockets = [];
 const cachedGames = [];
 
 module.exports = (io) => {
   io.on('connection', (socket) => {
-    console.log("Client connected", socket.request.session.user);
     if (socket.request.session.user === undefined) {
       socket.disconnect(true);
     } else {
@@ -26,24 +27,83 @@ module.exports = (io) => {
       socket.on('game', async (data) => {
         if (data.gameId) {
           const game = await getGame(data.gameId);
-          if (isPlaying(email, game)) {
-            const opEmail = email === game.meta.whiteEmail ? game.meta.blackEmail : game.meta.whiteEmail;
-            const opponentSocket = userSockets.find((s) => { s.email === opEmail });
+          if (isPlaying(username, game)) {
+            const opponent = username === game.meta.whiteUser ? game.meta.blackUser : game.meta.whiteUser;
+            const opponentSocket = userSockets.find((s) => s.username === opponent);
+            const color = username === game.meta.whiteUser ? WHITE : BLACK;
             switch(data.action) {
               case "get":
-                socket.emit('game', { action: "get", data: game });
+                socket.emit('game', { action: "send", data: game });
                 break;
               case "move":
+                if (data.piecePosition, data.move) {
+                  try {
+                    game.obj.makeMove(data.piecePosition, data.move);
+                    game.meta.status = game.obj.state;
+                    game.meta.numMoves = game.obj.history.length - 1;
+                    await saveGame(game);
+                    socket.emit('game', { action: "send", data: game });
+                    socket.emit('mygames', await getMyGames(username));
+                    if (opponentSocket) {
+                      io.to(opponentSocket.socketId).emit('game', { action: "send", data: game });
+                      io.to(opponentSocket.socketId).emit('mygames', await getMyGames(username));
+                    }
+                  } catch (error) {
+                    console.log(error);
+                  }
+                }
                 break;
-              case "draw_offer":
-                break;
-              case "draw_accept":
-                break;
-              case "draw_reject":
+              case "draw":
+                if (game.obj.drawOffer === -1) {
+                    game.obj.drawOffer = data.player;
+                    await saveGame(game);
+                    if (opponentSocket) {
+                      io.to(opponentSocket.socketId).emit('game', data);
+                    }
+                } else {
+                  if (data.player !== game.obj.drawOffer) {
+                    game.obj.state = 7;
+                    game.meta.status = 7;
+                    await saveGame(game);
+                    socket.emit('game', { action: "send", data: game });
+                    socket.emit('mygames', await getMyGames(username));
+                    if (opponentSocket) {
+                      io.to(opponentSocket.socketId).emit('game', { action: "send", data: game });
+                      io.to(opponentSocket.socketId).emit('mygames', await getMyGames(username));
+                    }
+                  }
+                }
                 break;
               case "resign":
+                const newState = username === game.meta.whiteUser ? 3 : 2;
+                game.meta.status = newState;
+                game.obj.state = newState;
+                await saveGame(game);
+                socket.emit('game', { action: "send", data: game });
+                socket.emit('mygames', await getMyGames(username));
+                if (opponentSocket) {
+                  io.to(opponentSocket.socketId).emit('game', { action: "send", data: game });
+                  io.to(opponentSocket.socketId).emit('mygames', await getMyGames(username));
+                  io.to(opponentSocket.socketId).emit('game', data);
+                }
                 break;
-              case "message":
+              case "get messages":
+                socket.emit("game", { gameId: data.gameId, action: "get messages", data: await Message.query().where({ gameId: data.gameId })});
+                break;
+              case "send message":
+                const inserted = await Message.query().insert({
+                  gameId: data.gameId,
+                  author: username,
+                  message: data.message
+                });
+                const msg = {
+                  ...data,
+                  message: inserted
+                };
+                socket.emit('game', msg)
+                if (opponentSocket) {
+                  io.to(opponentSocket.socketId).emit('game', msg);
+                }
                 break;
             }
           }
@@ -103,14 +163,13 @@ module.exports = (io) => {
             }
             sourceSocket = userSockets.find((s) => s.username === data.source);
             targetSocket = userSockets.find((s) => s.username === data.target);
-            console.log(sourceSocket, targetSocket);
             
             if (sourceSocket) {
-              io.to(sourceSocket.socketId).emit('mygames', await getMyGames(email));
+              io.to(sourceSocket.socketId).emit('mygames', await getMyGames(username));
               io.to(sourceSocket.socketId).emit('challenge', msg);
             }
             if (targetSocket) {
-              io.to(targetSocket.socketId).emit('mygames', await getMyGames(email));
+              io.to(targetSocket.socketId).emit('mygames', await getMyGames(username));
               io.to(targetSocket.socketId).emit('challenge', msg);
             }
             break;
@@ -124,7 +183,7 @@ module.exports = (io) => {
       });
 
       socket.on('mygames', async (data) => {
-        socket.emit('mygames', await getMyGames(email));
+        socket.emit('mygames', await getMyGames(username));
       })
 
       socket.on('lobby message', (data) => {
@@ -149,8 +208,7 @@ module.exports = (io) => {
 async function getGame(gameId) {
   let game = cachedGames.find((g) => g.meta.id === gameId);
   if (!game) {
-    const gameData = await Game.query().where({ id: gameId }).withGraphFetched('messages');
-
+    const gameData = await Game.query().where({ id: gameId });
     if (gameData.length > 0) {
       game = {
         meta: gameData[0],
@@ -167,13 +225,13 @@ function getUsernames() {
   return userSockets.map((s) => s.username).sort();
 }
 
-async function getMyGames(userEmail) {
-  return { data: await Game.query().select('id', 'whiteUser', 'blackUser', 'status', 'numMoves').where({ whiteEmail: userEmail }).orWhere({ blackEmail: userEmail })};
+async function getMyGames(username) {
+  return { data: await Game.query().select('id', 'whiteUser', 'blackUser', 'status', 'numMoves', 'createdAt', 'updatedAt').where({ whiteUser: username }).orWhere({ blackUser: username })};
 }
 
-function isPlaying(email, game) {
-  if (email && game) {
-    return email === game.meta.whiteEmail || email === game.meta.blackEmail;
+function isPlaying(username, game) {
+  if (username && game) {
+    return username === game.meta.whiteUser || username === game.meta.blackUser;
   }
   return false;
 }
@@ -182,8 +240,6 @@ async function saveGame(gameObj) {
   const meta = gameObj.meta;
   const data = JSON.stringify(gameObj.obj);
   if (!meta.id) {
-    console.log(gameObj);
-    
     const saved = await Game.query().insert({
       white_user: meta.whiteUser,
       white_email: meta.whiteEmail,
@@ -191,12 +247,16 @@ async function saveGame(gameObj) {
       black_email: meta.blackEmail,
       data: data,
       status: gameObj.obj.state,
-      num_moves: gameObj.obj.history.length - 1
+      num_moves: gameObj.obj.history.length - 1,
+      draw_offer: gameObj.obj.drawOffer
     });
     return saved.id;
   } else {
-    Game.query().findById(meta.id).patch({
-      data: data
+    await Game.query().findById(meta.id).patch({
+      data: data,
+      status: gameObj.obj.state, // Maybe not this state variable, have to think about it
+      num_moves: gameObj.obj.history.length - 1,
+      draw_offer: gameObj.obj.drawOffer
     });
   }
 }

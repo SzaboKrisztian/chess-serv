@@ -50,11 +50,11 @@ Model.knex(knex);
 // Routes
 
 const authRoutes = require('./routes/auth');
-const gameRoutes = require('./routes/game');
+// const gameRoutes = require('./routes/game');
 const frontEndRoutes = require('./routes/front-end');
 
 app.use(authRoutes);
-app.use(gameRoutes);
+// app.use(gameRoutes);
 app.use(frontEndRoutes);
 
 // Sockets

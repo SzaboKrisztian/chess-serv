@@ -37,6 +37,7 @@ exports.up = function(knex) {
       table.json('data').notNullable();
       table.integer('status').notNullable();
       table.integer('num_moves').notNullable();
+      table.integer('draw_offer').notNullable();
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
       table.dateTime('updated_at').defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
     })
@@ -53,11 +54,10 @@ exports.up = function(knex) {
 
     .createTable('messages', (table) => {
       table.increments('id');
-      table.integer('author_id').unsigned().notNullable();
-      table.foreign('author_id').references('id').inTable('users');
       table.integer('game_id').unsigned().notNullable();
       table.foreign('game_id').references('id').inTable('games');
       table.text('message').notNullable();
+      table.string('author').notNullable();
       table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
     });
 };
