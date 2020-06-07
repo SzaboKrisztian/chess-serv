@@ -163,7 +163,7 @@ module.exports = (io) => {
             targetSocket = userSockets.find((s) => s.username === data.target);
             
             if (sourceSocket) {
-              io.to(sourceSocket.socketId).emit('mygames', await getMyGames(username));
+              io.to(sourceSocket.socketId).emit('mygames', await getMyGames(sourceSocket.username));
               io.to(sourceSocket.socketId).emit('challenge', msg);
             }
             if (targetSocket) {
