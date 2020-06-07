@@ -2,7 +2,6 @@ const Game = require('../models/Game');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const ChessGame = require('../chess-logic/chess-game');
-const WHITE = 0, BLACK = -1;
 const userSockets = [];
 const cachedGames = [];
 
@@ -30,7 +29,6 @@ module.exports = (io) => {
           if (isPlaying(username, game)) {
             const opponent = username === game.meta.whiteUser ? game.meta.blackUser : game.meta.whiteUser;
             const opponentSocket = userSockets.find((s) => s.username === opponent);
-            const color = username === game.meta.whiteUser ? WHITE : BLACK;
             switch(data.action) {
               case "get":
                 socket.emit('game', { action: "send", data: game });
@@ -46,7 +44,7 @@ module.exports = (io) => {
                     socket.emit('mygames', await getMyGames(username));
                     if (opponentSocket) {
                       io.to(opponentSocket.socketId).emit('game', { action: "send", data: game });
-                      io.to(opponentSocket.socketId).emit('mygames', await getMyGames(username));
+                      io.to(opponentSocket.socketId).emit('mygames', await getMyGames(opponent));
                     }
                   } catch (error) {
                     console.log(error);
@@ -69,7 +67,7 @@ module.exports = (io) => {
                     socket.emit('mygames', await getMyGames(username));
                     if (opponentSocket) {
                       io.to(opponentSocket.socketId).emit('game', { action: "send", data: game });
-                      io.to(opponentSocket.socketId).emit('mygames', await getMyGames(username));
+                      io.to(opponentSocket.socketId).emit('mygames', await getMyGames(opponent));
                     }
                   }
                 }
@@ -83,7 +81,7 @@ module.exports = (io) => {
                 socket.emit('mygames', await getMyGames(username));
                 if (opponentSocket) {
                   io.to(opponentSocket.socketId).emit('game', { action: "send", data: game });
-                  io.to(opponentSocket.socketId).emit('mygames', await getMyGames(username));
+                  io.to(opponentSocket.socketId).emit('mygames', await getMyGames(opponent));
                   io.to(opponentSocket.socketId).emit('game', data);
                 }
                 break;
@@ -94,12 +92,12 @@ module.exports = (io) => {
                 const inserted = await Message.query().insert({
                   gameId: data.gameId,
                   author: username,
-                  message: data.message
+                  message: escape(data.message)
                 });
                 const msg = {
                   ...data,
-                  message: inserted
-                };
+                  message: (await Message.query().where({ id: inserted.id }))[0]
+                }
                 socket.emit('game', msg)
                 if (opponentSocket) {
                   io.to(opponentSocket.socketId).emit('game', msg);
@@ -169,7 +167,7 @@ module.exports = (io) => {
               io.to(sourceSocket.socketId).emit('challenge', msg);
             }
             if (targetSocket) {
-              io.to(targetSocket.socketId).emit('mygames', await getMyGames(username));
+              io.to(targetSocket.socketId).emit('mygames', await getMyGames(targetSocket.username));
               io.to(targetSocket.socketId).emit('challenge', msg);
             }
             break;
@@ -193,7 +191,6 @@ module.exports = (io) => {
       });
     
       socket.once('disconnect', () => {
-        const username = socket.request.session.user.username;
         socket.broadcast.emit('system message', { message: `${username} disconnected.`, timestamp: Date.now() });
         const user = userSockets.find((s) => s.username === username);
         if (user) {
@@ -259,8 +256,4 @@ async function saveGame(gameObj) {
       draw_offer: gameObj.obj.drawOffer
     });
   }
-}
-
-async function addMessage(message) {
-
 }
