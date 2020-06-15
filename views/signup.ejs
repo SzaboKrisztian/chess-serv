@@ -1,0 +1,36 @@
+<%- include('partials/head'); -%>
+  <title>Chesspiece</title>
+</head>
+<body>
+  <%- include('partials/navbar'); -%>
+  <main class="clearfix">
+    <div class="container">
+      <legend>Sign up</legend>
+      <div class="form-group">
+        <div class="alert" id="reg-message"></div>
+      </div>
+      <div class="form-group">
+        <label for="email">E-Mail:</label>
+        <input class="form-control" type="email" id="reg-email">
+      </div>
+      <div class="form-group">
+        <label for="reg-username">Username:</label>
+        <input class="form-control" type="text" id="reg-user">
+      </div>
+      <div class="form-group">
+        <label for="reg-pass">Password:</label>
+        <input class="form-control" type="password" id="reg-pass">
+      </div>
+      <div class="form-group">
+        <label for="reg-pass-rep">Repeat:</label>
+        <input class="form-control" type="password" id="reg-pass-rep">
+      </div>
+      <div class="form-group">
+        <button id="reg-button" class="btn btn-primary">Sign Up</button>
+      </div>
+    </div>
+  </main>
+  <%- include('partials/scripts'); -%>
+  <script src="/js/signup.js"></script>
+</body>
+</html>

@@ -1,11 +1,16 @@
 <%- include('partials/head'); -%>
-  <title>Node.js Mandatory 2</title>
+  <title>Chesspiece</title>
 </head>
-<body>
+<body class="h-100 w-100">
   <%- include('partials/navbar'); -%>
   <main>
-    
+    <% if (user) { %>
+      <%- include('partials/main'); -%>
+    <% } else { %>
+      <%- include('partials/notauth'); -%>
+    <% } %>
   </main>
   <%- include('partials/scripts'); -%>
+  <script src="/js/main.js"></script>
 </body>
 </html>

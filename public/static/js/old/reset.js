@@ -1,15 +1,14 @@
 $(() => {
   const path = window.location.pathname;
   const token = path.substr(path.lastIndexOf('/') + 1);
-  const resetMessage = $('#res-message');
-
+  const resetMessage = $('#reset-message');
+  
   $('#reset-button').click(() => {
     const pass = $('#reset-pass').val();
     const passRep = $('#reset-pass-rep').val();
 
-    resetMessage.text(resetMessage.text + " test");
-
     if (pass !== "" && pass === passRep) {
+
       const data = { token: token, password: pass, passwordRepeat: passRep };
       
       $.ajax({
@@ -28,7 +27,7 @@ $(() => {
       });
     } else {
       resetMessage.addClass("alert-danger").removeClass("alert-success");
-      resetMessage.text("Password and Repeat password must both be filled in and match.");
+      resetMessage.text("Password and Repeat must both be filled in and match.");
     }
   });
 });

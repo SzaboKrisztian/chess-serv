@@ -1,8 +1,22 @@
-$(() => {
-  const loginMessage = $('#login-message');
-  const resetMessage = $('#reset-message');
+$(() => {  
+  const loginModal = $('#loginModal');
+  const loginMessage = $('#loginMessage');
+  const resetModal = $('#resetModal');
+  const resetMessage = $('#resetMessage');
 
-  $('#login-submit').click(() => {
+  $('#loginNav').click(() => {
+    loginModal.css("display", "block");
+  });
+
+  $('#loginClose').click(() => {
+    loginModal.css("display", "none");
+  });
+
+  $('#resetClose').click(() => {
+    resetModal.css("display", "none");
+  });
+
+  $('#loginSubmit').click(() => {
     const data = {
       username: $('#username').val(),
       password: $('#password').val()
@@ -17,16 +31,22 @@ $(() => {
         window.location.href = window.location.origin;
       },
       error: (xhr, status, error) => {
-        loginMessage.addClass("alert-danger").removeClass("alert-success");
         loginMessage.text(xhr.responseJSON.response);
       }
     });
   });
 
-  $('#logout-nav').click(() => {
+  $('#logoutNav').click(() => {
+    const data = {
+      username: $('#username').val(),
+      password: $('#password').val()
+    }
+    console.log(data);
+    
     $.ajax({
       type: 'get',
       url: '/auth/logout',
+      data: data,
       dataType: "json",
       success: (result, status, xhr) => {
         window.location.href = window.location.origin;
@@ -37,18 +57,23 @@ $(() => {
     });
   });
 
-  $('#reset-link').click(() => {
-    $('#login-modal').modal('hide');
+  $('#resetLink').click(() => {
+    loginModal.css("display", "none");
+    resetModal.css("display", "block");
   });
 
-  $('#reset-submit').click(() => {
-    const user = $('#reset-username').val();
-    const mail = $('#reset-email').val();
+  $('#loginLink').click(() => {
+    resetModal.css("display", "none");
+    loginModal.css("display", "block");
+  });
+
+  $('#resetSubmit').click(() => {
+    const user = $('#resetUsername').val();
+    const mail = $('#resetEmail').val();
     if ((user !== "" && mail !== "") || (user === "" && mail === "")) {
-      resetMessage.addClass("alert-danger").removeClass("alert-success");
       resetMessage.text("Please only fill in either username or email, but not both.");
     } else {
-      const data = {};
+      let data = { }
       if (user !== "") {
         data.username = user;
       } else {
@@ -61,14 +86,20 @@ $(() => {
         data: data,
         dataType: 'json',
         success: (result, status, xhr) => {
-          resetMessage.addClass("alert-success").removeClass("alert-danger");
           resetMessage.text("An email with reset instructions has been sent to the registered address.");
         },
         error: (xhr, status, error) => {
-          resetMessage.addClass("alert-danger").removeClass("alert-success");
           resetMessage.text(xhr.responseJSON.response);
         }
       });
+    }
+  });
+
+  $(window).click((event) => {
+    if (event.target == loginModal[0]) {
+      loginModal.css("display", "none");
+    } else if (event.target == resetModal[0]) {
+      resetModal.css("display", "none");
     }
   });
 });
