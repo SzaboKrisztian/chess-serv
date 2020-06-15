@@ -1,0 +1,28 @@
+<%- include('partials/head'); -%>
+  <title>Chesspiece</title>
+</head>
+<body>
+  <%- include('partials/navbar'); -%>
+  <main class="clearfix">
+    <div class="container">
+      <legend>Reset password</legend>
+      <div class="form-group">
+        <div class="alert" id="res-message"></div>
+      </div>
+      <div class="form-group">
+        <label for="reset-pass">Password:</label>
+        <input class="form-control" type="password" id="reset-pass">
+      </div>
+      <div class="form-group">
+        <label for="reset-pass-rep">Repeat password:</label>
+        <input class="form-control" type="password" id="reset-pass-rep">
+      </div>
+      <div class="form-group">
+        <button class="btn btn-primary" id="reset-button">Reset</button>
+      </div>
+    </div>
+  </main>
+  <%- include('partials/scripts'); -%>
+  <script src="/js/reset.js"></script>
+</body>
+</html>

@@ -1,60 +1,77 @@
-<nav>
-  <ul>
-    <li><a href="/">Home</a></li>
+<nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-primary">
+  <a class="navbar-brand" href="/">Chesspiece</a>
+  <ul class="navbar-nav ml-md-auto">
     <% if (user) { %>
-      <li><a href="/chat">Chat</a></li>
-      <% if (user.role === 'ADMIN') { %>
-        <li><a href="/admin">Administration</a></li>
-      <% } %>
-      <li id="filler"></li>
-      <li>Logged in as: <%= user.username %></li>
-      <li><a href="#" id="logoutNav">Logout</a></li>
-    <% } %>
-    <% if (user === undefined) { %>
-      <li><a href="#" id="loginNav">Login</a></li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" id="user-menu"><%= user.username %> <span class="caret"></span></a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="#" id="logout-nav">Logout</a>
+        </div>
+      </li>
+    <% } else { %>
+      <li class="nav-item"><a class="nav-link" href="#" data-toggle="modal" data-target="#login-modal">Login</a></li>
     <% } %>
   </ul>
-  <div id="loginModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="loginClose">&times;</span>
-      <span id="loginMessage"></span>
-      <div class="form-elem">
-        <label for="username">Username:</label>
-        <input type="text" id="username">
-      </div>
-      <div class="form-elem">
-        <label for="password">Password:</label>
-        <input type="password" id="password">
-      </div>
-      <div class="form-elem">
-        <button id="loginSubmit">Login</button>
-      </div>
-      <div class="form-elem">
-        <a href="#" id="resetLink">Forgot password?</a>
-      </div>
-      <div class="form-elem">
-        New user? <a href="/signup">Signup</a>
-      </div>
-    </div>
-  </div>
-  <div id="resetModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="resetClose">&times;</span>
-      <span id="resetMessage"></span>
-      <div class="form-elem">
-        <label for="resetUsername">Username:</label>
-        <input type="text" id="resetUsername">
-      </div>
-      <div class="form-elem">
-        <label for="resetEmail">Email:</label>
-        <input type="text" id="resetEmail">
-      </div>
-      <div class="form-elem">
-        <button id="resetSubmit">Reset password</button>
-      </div>
-      <div class="form-elem">
-        <a href="#" id="loginLink">Login</a>
-      </div>
-    </div>
-  </div>
 </nav>
+<div class="modal fade" id="login-modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Login</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <div class="alert" id="login-message"></div>
+        </div>
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" class="form-control" id="username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" class="form-control" id="password">
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary" id="login-submit">Login</button>
+        </div>
+        <div class="form-group">
+          <a href="#" id="reset-link" data-toggle="modal" data-target="#reset-modal">Forgot password?</a>
+        </div>
+        <div class="form-group">
+          New user? <a href="/signup">Signup</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="reset-modal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Reset Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <div class="alert" id="reset-message"></div>
+        </div>
+        <div class="form-group">
+          <label for="reset-username">Username:</label>
+          <input type="text" class="form-control" id="reset-username">
+        </div>
+        <div class="form-group">
+          <label for="reset-email">Email:</label>
+          <input type="text" class="form-control" id="reset-email">
+        </div>
+        <div class="form-group">
+          <button class="btn btn-primary" id="reset-submit">Reset password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
