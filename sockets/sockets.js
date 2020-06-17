@@ -22,6 +22,7 @@ module.exports = (io) => {
       });
 
       io.emit('userlist', { data: getUsernames() });
+      getMyGames(username).then((result) => socket.emit('mygames', result));
 
       socket.on('game', async (data) => {
         if (data.gameId) {
@@ -34,11 +35,12 @@ module.exports = (io) => {
                 socket.emit('game', { action: "send", data: game });
                 break;
               case "move":
-                if (data.piecePosition, data.move) {
+                if (isPlayerMove(username, game) && data.piecePosition && data.move) {
                   try {
                     game.obj.makeMove(data.piecePosition, data.move);
                     game.meta.status = game.obj.state;
                     game.meta.numMoves = game.obj.history.length - 1;
+                    game.meta.drawOffer = -1;
                     await saveGame(game);
                     socket.emit('game', { action: "send", data: game });
                     socket.emit('mygames', await getMyGames(username));
@@ -54,6 +56,7 @@ module.exports = (io) => {
               case "draw":
                 if (game.obj.drawOffer === -1) {
                     game.obj.drawOffer = data.player;
+                    game.meta.drawOffer = data.player;
                     await saveGame(game);
                     if (opponentSocket) {
                       io.to(opponentSocket.socketId).emit('game', data);
@@ -233,6 +236,17 @@ function isPlaying(username, game) {
   return false;
 }
 
+function isPlayerMove(username, game) {
+  if (username && game) {
+    if (game.meta.status === -2) {
+      return game.meta.whiteUser === username;
+    } else if (game.meta.status === -1) {
+      return game.meta.blackUser === username;
+    }
+  }
+  return false;
+}
+
 async function saveGame(gameObj) {
   const meta = gameObj.meta;
   const data = JSON.stringify(gameObj.obj);
@@ -251,7 +265,7 @@ async function saveGame(gameObj) {
   } else {
     await Game.query().findById(meta.id).patch({
       data: data,
-      status: gameObj.obj.state, // Maybe not this state variable, have to think about it
+      status: gameObj.obj.state,
       num_moves: gameObj.obj.history.length - 1,
       draw_offer: gameObj.obj.drawOffer
     });

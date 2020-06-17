@@ -1,20 +1,60 @@
     <div class="row" id="main-container">
-      <div class="col-sm" style="background-color: aqua;">
+      <div class="col-sm">
         <a href="#" class="btn btn-primary" id="show-lobby-btn">Back to lobby</a>
-        games
+        <div class="title"><h3>Your games</h3></div>
+        <div id="games-list" class="list-group"></div>
       </div>
       <div class="col-10">
         <div class="row" id="lobby">
-          <div class="col-10" style="background-color: burlywood;">
-            chat
+          <div class="col-10 chat-container">
+            <div id="title"><h3 style="text-align: center;">Lobby chat</h3></div>
+            <div id="chat-history"></div>
+            <div id="chat-controls">
+              <input type="text" class="form-control" id="chat-input"><button class="btn btn-primary" id="chat-submit-btn">Send</button>
+            </div>
           </div>
-          <div class="col-2" style="background-color: darkolivegreen;">
-            players
+          <div class="col-2">
+            <div class="title"><h3>Players</h3></div>
+            <div id="userlist" class="list-group"></div>
           </div>
         </div>
         <div class="row" id="game" style="display: none;">
-          <div class="col" style="background-color: darkkhaki;">board</div>
-          <div class="col" style="background-color: deepskyblue;">chat</div>
+          <div class="col">
+            <div>
+              <ul class="nav nav-pills" style="float: right;">
+                <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Actions</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#" id="resign-btn">Resign</a>
+                  <a class="dropdown-item" href="#" id="draw-btn">Offer draw</a>
+                </div>
+                </li>
+              </ul>
+              <h3 id="game-message"></h3>
+            </div>
+            <canvas id="board" height="1024" width="1024"></canvas><br>
+            <img id="b_pawn" src="assets/black_pawn.svg" style="display: none;">
+            <img id="b_knight" src="assets/black_knight.svg" style="display: none;">
+            <img id="b_bishop" src="assets/black_bishop.svg" style="display: none;">
+            <img id="b_rook" src="assets/black_rook.svg" style="display: none;">
+            <img id="b_queen" src="assets/black_queen.svg" style="display: none;">
+            <img id="b_king" src="assets/black_king.svg" style="display: none;">
+            <img id="w_pawn" src="assets/white_pawn.svg" style="display: none;">
+            <img id="w_knight" src="assets/white_knight.svg" style="display: none;">
+            <img id="w_bishop" src="assets/white_bishop.svg" style="display: none;">
+            <img id="w_rook" src="assets/white_rook.svg" style="display: none;">
+            <img id="w_queen" src="assets/white_queen.svg" style="display: none;">
+            <img id="w_king" src="assets/white_king.svg" style="display: none;">
+            <img id="board_bg" src="assets/board.png" style="display: none;">
+            <img id="move" src="assets/move.svg" style="display: none;">
+          </div>
+          <div class="col chat-container">
+            <div class="title"><h3>Game chat</h3></div>
+            <div id="game-chat-history"></div>
+            <div id="game-chat-controls">
+              <input type="text" class="form-control" id="game-chat-input"><button class="btn btn-primary" id="game-chat-submit-btn">Send</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,4 @@
 <%- include('partials/head'); -%>
-  <title>Chesspiece</title>
-</head>
 <body class="h-100 w-100">
   <%- include('partials/navbar'); -%>
   <main>
@@ -11,6 +9,28 @@
     <% } %>
   </main>
   <%- include('partials/scripts'); -%>
-  <script src="/js/main.js"></script>
+  <% if (user) { %>
+    <div class="modal" id="game-modal">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="game-modal-title">Modal title</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p id="game-modal-text">Modal body text goes here.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal" id="game-modal-yes-btn">Yes</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" id="game-modal-no-btn">No</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="/js/main.js"></script>
+  <% } %>
 </body>
 </html>

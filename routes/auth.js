@@ -12,6 +12,8 @@ const transporter = nodemailer.createTransport(transportSettings.settings);
 const bcrypt = require('bcrypt');
 const saltRounds = 12;
 const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/
+// Hostname for putting in the emails
+const hostname = require('../config/hostname').host;
 
 function isPasswordValid(password, passwordRepeat) {
   return (password !== undefined) && (password === passwordRepeat) && (password.length >= 8);
@@ -89,8 +91,8 @@ router.post("/auth/signup", async (req, res) => {
         transporter.sendMail({
           to: inserted.email,
           subject: "Account activation required",
-          text: `The account "${inserted.username}" has just been registered on this email address. If this wasn't you, nothing needs to be done.\n\nIf it indeed was you, then you can activate your account by visiting:\n\nhttp://localhost:3000/activate/${token}`,
-          html: `<p>The account <b>${inserted.username}</b>  has just been registered on this email address. If this wasn't you, nothing needs to be done.</p><h3>${token}</h3><p>If it indeed was you, then you can activate your account by visiting:</p><p><a href="http://localhost:3000/activate/${token}">Activate account</a></p>`
+          text: `The account "${inserted.username}" has just been registered on this email address. If this wasn't you, nothing needs to be done.\n\nIf it indeed was you, then you can activate your account by visiting:\n\n${hostname}/activate/${token}`,
+          html: `<p>The account <b>${inserted.username}</b>  has just been registered on this email address. If this wasn't you, nothing needs to be done.</p><h3>${token}</h3><p>If it indeed was you, then you can activate your account by visiting:</p><p><a href="${hostname}/activate/${token}">Activate account</a></p>`
         });
                 
         return res.send({ response: `User "${username}" successfully created. Check your email for activation instructions.` });
@@ -176,8 +178,8 @@ router.post("/auth/req_reset", async (req, res) => {
       transporter.sendMail({
         to: user.email,
         subject: "Password reset requested",
-        text: `A password request was requested for the account "${user.username}" registered on this email address. If this wasn't you, nothing needs to be done. The reset token is:\n\n${token}\n\nYou can reset your password by visiting the following link:\n\nhttp://localhost:3000/reset/${token}`,
-        html: `<p>A password request was requested for the account <b>${user.username}</b> registered on this email address. If this wasn't you, nothing needs to be done. The reset token is:</p><h3>${token}</h3><p>You can reset your password by visiting the following link:</p><p><a href="http://localhost:3000/reset/${token}">Reset password</a></p>`
+        text: `A password request was requested for the account "${user.username}" registered on this email address. If this wasn't you, nothing needs to be done. The reset token is:\n\n${token}\n\nYou can reset your password by visiting the following link:\n\n${hostname}/reset/${token}`,
+        html: `<p>A password request was requested for the account <b>${user.username}</b> registered on this email address. If this wasn't you, nothing needs to be done. The reset token is:</p><h3>${token}</h3><p>You can reset your password by visiting the following link:</p><p><a href="${hostname}/reset/${token}">Reset password</a></p>`
       });
       return res.send({ response: message });
     } else {

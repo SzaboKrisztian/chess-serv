@@ -9,15 +9,18 @@ body {
 
 main {
   height: 100%;
+  padding: 0px;
 }
 
 #main-container {
-  width: 100.8%;
+  width: 100%;
   height: 100%;
+  margin: 0px;
 }
 
 #show-lobby-btn {
   width: 100%;
+  margin-bottom: 2em;
 }
 
 #lobby {
@@ -26,4 +29,116 @@ main {
 
 #game {
   height: 100%;
+  text-align: center;
+}
+
+.chat-container {
+  height: 100%;
+  overflow: visible;
+  border-width: 1px;
+  border-color: #dddddd;
+  border-style: solid;
+  padding: 1em;
+}
+
+#chat-controls {
+  position: absolute;
+  left: 7.5%;
+  width: 85%;
+  bottom: 4px;
+  display: flex;
+  flex-direction: row;
+  height: 48px;
+  align-items: center;
+}
+
+#game-chat-controls {
+  position: absolute;
+  left: 5%;
+  width: 90%;
+  bottom: 4px;
+  display: flex;
+  flex-direction: row;
+  height: 48px;
+  align-items: center;
+}
+
+#chat-history {
+  position: absolute;
+  top: 56px;
+  left: 7.5%;
+  width: 85%;
+  height: calc(100% - 120px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+#game-chat-history {
+  text-align: left;
+  position: absolute;
+  top: 56px;
+  left: 5%;
+  width: 90%;
+  height: calc(100% - 120px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+#board {
+  max-width: 90%;
+  width: min(attr(height), attr(width));
+  max-height: 90%;
+  height: min(attr(height), attr(width));
+}
+
+.my-turn {
+  background-color: #ddffdd;
+}
+
+.my-turn:hover {
+  background-color: #aaffaa;
+}
+
+.game-over {
+  background-color: #dddddd;
+}
+
+.game-over:hover {
+  background-color: #cccccc;
+}
+
+.title {
+  text-align: center;
+}
+
+.message, .sys-message {
+  background-color: #f8f8f8;
+  padding-left: 0.5em;
+  margin-bottom: 0.25em;
+}
+
+.message.own, .sys-message.own {
+  background-color: #ddffdd;
+}
+
+.message > .timestamp, .sys-message > .timestamp {
+  font-size: small;
+  color: #aaaaaa;
+  margin-right: 1em;
+}
+
+.message > .author {
+  color: #aaaaaa;
+  font-weight: 400;
+  margin-right: 1em;
+}
+
+.message > .content {
+  font-size: medium;
+}
+
+.sys-message > .content {
+  color: #aaaaaa;
 }
