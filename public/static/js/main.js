@@ -1,6 +1,6 @@
 $(() => {
   /** General references */
-  const host = window.location.origin.replace(':3000', ':3310/');
+  const host = window.location.origin + ':3310/';
   const socket = io(host);
   let username = "";
   const gameModal = $('#game-modal');
