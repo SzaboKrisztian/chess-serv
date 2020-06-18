@@ -160,6 +160,8 @@ module.exports = (io) => {
             // emit the confirmation and updated games list to both players
             const msg = {
               intent: "accepted",
+              source: data.source,
+              target: data.target,
               gameId: gameId
             }
             sourceSocket = userSockets.find((s) => s.username === data.source);
