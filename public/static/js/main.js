@@ -302,7 +302,7 @@ $(() => {
     data.data.forEach((entry) => {
       const style = getStyle(entry);
       const label = generateLabel(entry);
-      const newEntry = $(`<a class="game-entry list-group-item list-group-item-action${style}">${label}</a>`);
+      const newEntry = $(`<a class="game-entry list-group-item list-group-item-action${style}${(currentGame !== null && currentGame.meta.id === entry.id) ? ' active' : ''}">${label}</a>`);
       newEntry.click(function () {
         gamesList.children().removeClass('active');
         $(this).addClass('active');
