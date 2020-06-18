@@ -1,6 +1,8 @@
 $(() => {
   /** General references */
   let host;
+  console.log(window.location.origin);
+  
   if (window.location.origin.split(':').length > 2) {
     host = window.location.origin.substr(0, window.location.origin.lastIndexOf(':'));
   }
