@@ -135,12 +135,8 @@ $(() => {
               option = 7 << 10; // Queen promotion bits
               break;
           }
-          console.log(promoSelection, option);
-          
           if (option !== -1) {
             const promoMove = promotionMove | option;
-            console.log(promoMove, selection.moves);
-            
             if (selection.moves.includes(promoMove)) {
               socket.emit('game', {
                 gameId: gameId,
@@ -197,6 +193,7 @@ $(() => {
       game.css('display', 'none');
       lobby.css('display', '');
     }
+    $('#games-list').children().removeClass('active');
   });
 
   function submit() {
@@ -292,7 +289,7 @@ $(() => {
         modalInfo('Challenge rejected', `Player ${data.target} has rejected your challenge.`, 'Ok');
         break;
       case "accepted":
-        console.log("New game started with id: " + data.gameId);
+        modalInfo('Success', `New game started against ${data.target !== username ? data.target : data.source}.`, 'Ok');
         break;
     }
   });

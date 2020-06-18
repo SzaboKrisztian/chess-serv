@@ -35,7 +35,7 @@ module.exports = (io) => {
                 socket.emit('game', { action: "send", data: game });
                 break;
               case "move":
-                if (isPlayerMove(username, game) && data.piecePosition && data.move) {
+                if (isPlayerMove(username, game) && (data.piecePosition !== undefined) && (data.move !== undefined)) {
                   try {
                     game.obj.makeMove(data.piecePosition, data.move);
                     game.meta.status = game.obj.state;

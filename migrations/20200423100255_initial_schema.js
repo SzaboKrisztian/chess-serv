@@ -42,16 +42,6 @@ exports.up = function(knex) {
       table.dateTime('updated_at').defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
     })
 
-    .createTable('invitations', (table) => {
-      table.increments('id');
-      table.integer('inviter_id').unsigned().notNullable();
-      table.foreign('inviter_id').references('id').inTable('users');
-      table.string('invitee_email').notNullable();
-      table.boolean('accepted').notNullable().defaultTo(false);
-      table.dateTime('created_at').notNullable().defaultTo(knex.raw('CURRENT_TIMESTAMP'));
-      table.dateTime('updated_at').defaultTo(knex.raw('NULL ON UPDATE CURRENT_TIMESTAMP'));
-    })
-
     .createTable('messages', (table) => {
       table.increments('id');
       table.integer('game_id').unsigned().notNullable();
@@ -65,7 +55,6 @@ exports.up = function(knex) {
 exports.down = function(knex) {
   return knex.schema
     .dropTableIfExists('messages')
-    .dropTableIfExists('invitations')
     .dropTableIfExists('games')
     .dropTableIfExists('tokens')
     .dropTableIfExists('users')

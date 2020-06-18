@@ -50,11 +50,9 @@ Model.knex(knex);
 // Routes
 
 const authRoutes = require('./routes/auth');
-// const gameRoutes = require('./routes/game');
 const frontEndRoutes = require('./routes/front');
 
 app.use(authRoutes);
-// app.use(gameRoutes);
 app.use(frontEndRoutes);
 
 // Sockets
@@ -66,7 +64,7 @@ io.use((socket, next) => {
   sessionMiddleware(socket.request, socket.request.res || {}, next);
 });
 
-const sockets = require('./sockets/sockets')(io);
+require('./sockets/sockets')(io);
 
 const port = 3000;
 
