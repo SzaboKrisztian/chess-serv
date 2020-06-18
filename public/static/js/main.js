@@ -1,13 +1,10 @@
 $(() => {
   /** General references */
-  let host;
-  console.log(window.location.origin);
-  
-  if (window.location.origin.split(':').length > 2) {
-    host = window.location.origin.substr(0, window.location.origin.lastIndexOf(':'));
+  let host = window.location.origin;
+  if (host.split(':').length > 2) {
+    host = host.substr(0, host.lastIndexOf(':'));
   }
   host += ':3310/';
-  console.log(host);
   const socket = io(host);
   let username = "";
   const gameModal = $('#game-modal');
