@@ -1,7 +1,8 @@
 <%- include('partials/head'); -%>
-<body class="h-100 w-100">
+<% let logged = user !== undefined; %>
+<body class="h-100 w-100" <%- (!logged ? 'id="bg-holder"' : '') -%>>
   <%- include('partials/navbar'); -%>
-  <main class="container-fluid">
+  <main class="container-fluid <%- (!logged ? 'vertical-fix' : '') -%>">
     <% if (user) { %>
       <%- include('partials/main'); -%>
     <% } else { %>

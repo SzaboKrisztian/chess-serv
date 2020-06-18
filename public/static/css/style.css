@@ -142,3 +142,23 @@ main {
 .sys-message > .content {
   color: #aaaaaa;
 }
+
+.vertical-fix {
+  height: 0;
+}
+
+#splash-text {
+  margin-top: 25vh;
+  width: min-content;
+  padding: 2em;
+  text-align: center;
+  border: #dddddd 1px solid;
+  background-color: #ffffff;
+}
+
+#bg-holder {
+  background-image: url("/img/splash.png");
+  background-clip: border-box;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
