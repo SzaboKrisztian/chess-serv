@@ -364,8 +364,6 @@ $(() => {
     showChat(gameId);
     const game = games[gameId];
     if (game) {
-      console.log(game);
-      
       currentGame = game;
       selection = null;
       drawBoard();
