@@ -1,6 +1,8 @@
 $(() => {
   /** General references */
-  const host = window.location.origin + ':3310/';
+  const re = /:[0-9]{3,5}\/?$/;
+  const host = window.location.origin.replace(re, ':3310/');
+  console.log(host);
   const socket = io(host);
   let username = "";
   const gameModal = $('#game-modal');

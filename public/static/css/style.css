@@ -66,8 +66,8 @@ main {
 #chat-history {
   position: absolute;
   top: 56px;
-  left: 7.5%;
-  width: 85%;
+  left: calc(7.5%);
+  width: calc(85%);
   height: calc(100% - 120px);
   overflow-y: auto;
   display: flex;
@@ -78,8 +78,8 @@ main {
   text-align: left;
   position: absolute;
   top: 56px;
-  left: 5%;
-  width: 90%;
+  left: calc(5%);
+  width: calc(90%);
   height: calc(100% - 120px);
   overflow-y: auto;
   display: flex;
