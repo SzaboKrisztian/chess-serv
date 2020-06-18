@@ -1,11 +1,10 @@
 $(() => {
   /** General references */
+  let host;
   if (window.location.origin.split(':').length > 2) {
-    const re = /:[0-9]{3,5}\/?$/;
-    const host = window.location.origin.replace(re, ':3310/');
-  } else {
-    const host = window.location.origin + ':3310/';
+    host = window.location.origin.substr(0, window.location.origin.lastIndexOf(':'));
   }
+  host += ':3310/';
   console.log(host);
   const socket = io(host);
   let username = "";
